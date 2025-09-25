@@ -1,0 +1,14 @@
+# This script is executed after the environment is built
+# and before the notebooks are launched.
+
+# Download the dataset from a public URL
+wget -P ./dataset_parquet --no-check-certificate https://drive.google.com/uc?export=download&id=19Xv6g62nDh_1GZHQ9cxuy6y0jk7btn5Z
+
+# Unzip the file
+# unzip dataset.zip
+
+# Clean up the zip file to save space
+# rm dataset.zip
+
+# Download a pre-trained model
+wget -P ./checkpoints/trajectory_transformer --no-check-certificate https://drive.google.com/uc?export=download&id=1g-CLwRAhRm5TW-GwXUCVRfByzyC5q6Fe
