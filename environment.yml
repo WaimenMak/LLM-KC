@@ -137,11 +137,10 @@ dependencies:
   - pycparser=2.21=pyhd3eb1b0_0
   - pygments=2.19.1=pyhd8ed1ab_0
   - pysocks=1.7.1=py313hca03da5_0
-  - python=3.13.3=h81fe080_101_cp313
+  - python=3.12
   - python-dateutil=2.9.0.post0=pyhff2d567_1
   - python-fastjsonschema=2.20.0=py313hca03da5_0
   - python-json-logger=3.2.1=py313hca03da5_0
-  - python_abi=3.13=7_cp313
   - pytorch=2.7.1=cpu_generic_py313_hfe15936_2
   - pyyaml=6.0.2=py313h80987f9_0
   - pyzmq=26.4.0=py313he6960b1_0
