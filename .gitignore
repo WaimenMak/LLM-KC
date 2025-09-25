@@ -1,2 +1,4 @@
 *.pt
-.DS_Store
+*.parquet
+/.DS_Store
+/.idea
