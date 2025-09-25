@@ -1,4 +1,4 @@
-name: my-huggingface-env
+name: LLM-KC
 channels:
   - pytorch
   - conda-forge
@@ -10,5 +10,11 @@ dependencies:
   - pytorch::torchvision
   - pytorch::torchaudio
   - tqdm
+  - matplotlib
+  - seaborn
+  - pandas
+  - pyarrow
+  - scikit-learn
+  - h5py
   - pip:
     - transformers
