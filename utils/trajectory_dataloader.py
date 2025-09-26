@@ -7,6 +7,10 @@ import pickle
 import os
 import random
 from typing import Dict, List, Tuple, Optional
+from models.trajectory_tokenizer import TrajectoryTokenizer
+from models.trajectory_transformer import TrajectoryT5
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class DynamicTrajectoryDataset(Dataset):
     """Dataset for training with dynamic trajectory splitting for data augmentation."""
@@ -375,6 +379,95 @@ def load_mixed_trajectory_data(data_dir: str, city: str, batch_size: int = 32,
         max_decoder_len=max_decoder_len,
         num_workers=num_workers
     )
+
+# Helper function to load the model from a checkpoint
+def load_model_from_checkpoint(checkpoint_path: str, data_manager: MixedTrajectoryDataManager, device: torch.device) -> TrajectoryT5:
+    """Load model from checkpoint."""
+    print(f"Loading model from {checkpoint_path}...")
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(f"Checkpoint file not found at {checkpoint_path}")
+        
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    training_args = checkpoint.get('args', {})
+    model_name = training_args.get('model_name', 't5-small')
+    
+    tokenizer = TrajectoryTokenizer()
+    cluster_info = data_manager.get_cluster_info()
+    num_clusters = cluster_info.get('num_clusters', 100)
+    model = TrajectoryT5(tokenizer, model_name=model_name, from_pretrained=False, num_clusters=num_clusters)
+    
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.to(device)
+    model.eval()
+    
+    print(f"✓ Model loaded successfully (Epoch: {checkpoint.get('epoch', 'Unknown')})")
+    return model
+
+# Helper function to calculate metrics
+def calculate_simple_metrics(pred_coords, gt_coords):
+    """Calculate simple metrics for quick evaluation."""
+    if len(pred_coords) == 0 or len(gt_coords) == 0 or len(pred_coords) != len(gt_coords):
+        return {'success': False, 'reason': 'Length mismatch or empty'}
+    
+    distances = [((p[0] - g[0])**2 + (p[1] - g[1])**2)**0.5 for p, g in zip(pred_coords, gt_coords)]
+    exact_matches = sum(1 for p, g in zip(pred_coords, gt_coords) if p == g)
+
+    return {
+        'avg_distance': np.mean(distances),
+        'max_distance': np.max(distances),
+        'exact_matches': exact_matches,
+        'accuracy': exact_matches / len(pred_coords),
+        'success': True,
+        'distances': distances
+    }
+
+# Helper function to visualize the trajectory
+def visualize_sample(past_coords, pred_coords, gt_coords, metrics, uid):
+    """Create a simple visualization of the trajectory prediction."""
+    plt.figure(figsize=(12, 8))
+    
+    if past_coords:
+        past_x, past_y = zip(*past_coords)
+        plt.plot(past_x, past_y, 'b-o', label='Past Trajectory', alpha=0.7, markersize=4)
+    
+    if pred_coords:
+        pred_x, pred_y = zip(*pred_coords)
+        plt.plot(pred_x, pred_y, 'r-s', label='Predicted', alpha=1, markersize=5)
+    
+    if gt_coords:
+        gt_x, gt_y = zip(*gt_coords)
+        plt.plot(gt_x, gt_y, 'g-^', label='Ground Truth', alpha=0.8, markersize=5)
+    
+    if past_coords and (pred_coords or gt_coords):
+        last_past = past_coords[-1]
+        if pred_coords: plt.plot([last_past[0], pred_coords[0][0]], [last_past[1], pred_coords[0][1]], 'r--', alpha=0.5)
+        if gt_coords: plt.plot([last_past[0], gt_coords[0][0]], [last_past[1], gt_coords[0][1]], 'g--', alpha=0.5)
+            
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.title(f'Trajectory Prediction - UID: {uid}\\n'
+              f'Avg Distance: {metrics.get("avg_distance", "N/A"):.2f}, '
+              f'Accuracy: {metrics.get("accuracy", 0)*100:.1f}%')
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    plt.show()
+
+    # 3d line plot, z is the order of the trajectory, x is longitude, y is latitude
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    past_length = np.arange(len(past_coords))
+    future_length = np.arange(past_length.max(), past_length.max()+len(pred_coords))
+    ax.plot(gt_x, gt_y, future_length, color="green", label="Ground Truth")
+    ax.plot(pred_x, pred_y, future_length, color="red", label="Generated", alpha=0.5)
+    #plot past trajectory
+    ax.plot(past_x, past_y, past_length, color="blue", label="Past Trajectory", alpha=0.5)
+    # add z axis title and rotate 90 degrees
+    ax.set_zlabel('Time', rotation=90)
+    ax.set_xlabel('X Coordinates')
+    ax.set_ylabel('Y Coordinates')
+    plt.legend()
+    plt.show()
+
 
 # Test the data loader
 if __name__ == '__main__':

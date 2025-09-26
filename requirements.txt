@@ -1,11 +1,11 @@
 # Base requirements
 tqdm>=4.66.1
 transformers>=4.39.3
-jupyter>=1.0.0  # Consider jupyterlab or notebook for specific components
+#jupyter>=1.0.0  # Consider jupyterlab or notebook for specific components
 
 # PyTorch installation - choose one of the following configurations:
 
 # CUDA 11.8 (requires compatible NVIDIA drivers)
-torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
-torchvision==0.17.0 --index-url https://download.pytorch.org/whl/cu118
-torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+torch==2.2.1 --index-url https://download.pytorch.org/whl/cu118
+#torchvision==2.2.1 --index-url https://download.pytorch.org/whl/cu118
+#torchaudio==2.2.1 --index-url https://download.pytorch.org/whl/cu118

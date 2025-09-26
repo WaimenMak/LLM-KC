@@ -22,7 +22,7 @@ def load_model_from_checkpoint(checkpoint_path: str, device: torch.device, num_c
     print(f"Loading model from {checkpoint_path}")
     
     # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
     
     # Get training args
     training_args = checkpoint.get('args', {})
